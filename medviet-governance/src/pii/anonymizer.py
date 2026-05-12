@@ -1,11 +1,12 @@
-# src/pii/anonymizer.py
 import pandas as pd
+from presidio_analyzer.analyzer_engine import RecognizerResult
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 from faker import Faker
 from .detector import build_vietnamese_analyzer, detect_pii
 
 fake = Faker("vi_VN")
+Faker.seed(42)
 
 class MedVietAnonymizer:
 
@@ -14,39 +15,57 @@ class MedVietAnonymizer:
         self.anonymizer = AnonymizerEngine()
 
     def anonymize_text(self, text: str, strategy: str = "replace") -> str:
-        """
-        TODO: Anonymize text với strategy được chọn.
-
-        Strategies:
-        - "mask"    : Nguyen Van A → N****** V** A
-        - "replace" : thay bằng fake data (dùng Faker)
-        - "hash"    : SHA-256 one-way hash
-        - "generalize": chỉ dùng cho tuổi/năm sinh
-        """
         results = detect_pii(text, self.analyzer)
         if not results:
             return text
 
-        # TODO: implement operators dict dựa trên strategy
         operators = {}
 
         if strategy == "replace":
             operators = {
-                "PERSON": OperatorConfig("replace", 
+                "PERSON": OperatorConfig("replace",
                           {"new_value": fake.name()}),
-                "EMAIL_ADDRESS": OperatorConfig("replace", 
-                                 {"new_value": ___}),   # TODO: fake email
-                "VN_CCCD": OperatorConfig("replace", 
-                           {"new_value": ___}),          # TODO: fake CCCD
-                "VN_PHONE": OperatorConfig("replace", 
-                            {"new_value": ___}),         # TODO: fake phone
+                "EMAIL_ADDRESS": OperatorConfig("replace",
+                                 {"new_value": fake.email()}),
+                "VN_CCCD": OperatorConfig("replace",
+                           {"new_value": fake.ssn()}),
+                "VN_PHONE": OperatorConfig("replace",
+                            {"new_value": fake.phone_number()}),
+                "VN_PERSON": OperatorConfig("replace",
+                             {"new_value": fake.name()}),
+                "LOCATION": OperatorConfig("replace",
+                            {"new_value": fake.address()}),
+                "ORGANIZATION": OperatorConfig("replace",
+                               {"new_value": fake.company()}),
             }
         elif strategy == "mask":
-            # TODO: implement masking
-            pass
+            operators = {
+                "PERSON": OperatorConfig("mask",
+                          {"chars_to_mask": 0, "masking_char": "*", "from_start": False}),
+                "EMAIL_ADDRESS": OperatorConfig("mask",
+                                 {"chars_to_mask": 0, "masking_char": "*", "from_start": False}),
+                "VN_CCCD": OperatorConfig("mask",
+                           {"chars_to_mask": 6, "masking_char": "*", "from_start": False}),
+                "VN_PHONE": OperatorConfig("mask",
+                            {"chars_to_mask": 4, "masking_char": "*", "from_start": False}),
+                "VN_PERSON": OperatorConfig("mask",
+                             {"chars_to_mask": 0, "masking_char": "*", "from_start": False}),
+                "LOCATION": OperatorConfig("mask",
+                            {"chars_to_mask": 0, "masking_char": "*", "from_start": False}),
+                "ORGANIZATION": OperatorConfig("mask",
+                               {"chars_to_mask": 0, "masking_char": "*", "from_start": False}),
+            }
         elif strategy == "hash":
-            # TODO: implement hashing dùng sha256
-            pass
+            import hashlib
+            operators = {
+                "PERSON": OperatorConfig("hash", {"hash_type": "sha256"}),
+                "EMAIL_ADDRESS": OperatorConfig("hash", {"hash_type": "sha256"}),
+                "VN_CCCD": OperatorConfig("hash", {"hash_type": "sha256"}),
+                "VN_PHONE": OperatorConfig("hash", {"hash_type": "sha256"}),
+                "VN_PERSON": OperatorConfig("hash", {"hash_type": "sha256"}),
+                "LOCATION": OperatorConfig("hash", {"hash_type": "sha256"}),
+                "ORGANIZATION": OperatorConfig("hash", {"hash_type": "sha256"}),
+            }
 
         anonymized = self.anonymizer.anonymize(
             text=text,
@@ -56,30 +75,26 @@ class MedVietAnonymizer:
         return anonymized.text
 
     def anonymize_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        TODO: Anonymize toàn bộ DataFrame.
-        - Cột text (ho_ten, dia_chi, email): dùng anonymize_text()
-        - Cột cccd, so_dien_thoai: replace trực tiếp bằng fake data
-        - Cột benh, ket_qua_xet_nghiem: GIỮ NGUYÊN (cần cho model training)
-        - Cột patient_id: GIỮ NGUYÊN (pseudonym đã đủ an toàn)
-        """
         df_anon = df.copy()
 
-        # TODO: Xử lý từng cột PII
-        # Gợi ý: dùng df.apply() hoặc list comprehension
+        # Text columns: use anonymize_text
+        for col in ["ho_ten", "dia_chi", "email"]:
+            if col in df_anon.columns:
+                df_anon[col] = [self.anonymize_text(str(v)) for v in df_anon[col]]
 
+        # CCCD and phone: direct fake replacement
+        if "cccd" in df_anon.columns:
+            df_anon["cccd"] = [fake.ssn() for _ in range(len(df_anon))]
+        if "so_dien_thoai" in df_anon.columns:
+            df_anon["so_dien_thoai"] = [fake.phone_number() for _ in range(len(df_anon))]
+
+        # Keep non-PII columns unchanged
+        # patient_id, benh, ket_qua_xet_nghiem stay as-is
         return df_anon
 
-    def calculate_detection_rate(self, 
+    def calculate_detection_rate(self,
                                   original_df: pd.DataFrame,
                                   pii_columns: list) -> float:
-        """
-        TODO: Tính % PII được detect thành công.
-        Mục tiêu: > 95%
-
-        Logic: với mỗi ô trong pii_columns,
-               kiểm tra xem detect_pii() có tìm thấy ít nhất 1 entity không.
-        """
         total = 0
         detected = 0
 

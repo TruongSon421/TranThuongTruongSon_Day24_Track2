@@ -1,64 +1,58 @@
-# src/pii/detector.py
 from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern
-from presidio_analyzer.nlp_engine import NlpEngineProvider
+
+from .gliner_recognizer import GLiNERRecognizer
+
 
 def build_vietnamese_analyzer() -> AnalyzerEngine:
-    """
-    TODO: Xây dựng AnalyzerEngine với các recognizer tùy chỉnh cho VN.
-    """
-
-    # --- TASK 2.2.1 ---
-    # Tạo CCCD recognizer: số CCCD VN có đúng 12 chữ số
+    # CCCD: 9-12 digits (Vietnamese ID)
     cccd_pattern = Pattern(
         name="cccd_pattern",
-        regex=r"___",          # TODO: điền regex cho 12 chữ số
+        regex=r"\d{9,12}",
         score=0.9
     )
     cccd_recognizer = PatternRecognizer(
         supported_entity="VN_CCCD",
-        patterns=[cccd_pattern],
-        context=["cccd", "căn cước", "chứng minh", "cmnd"]
+        patterns=[cccd_pattern]
     )
 
-    # --- TASK 2.2.2 ---
-    # Tạo phone recognizer: số điện thoại VN (0[3|5|7|8|9]xxxxxxxx)
+    # Phone: 9-10 digits starting with 9 (Vietnamese mobile, without leading 0)
     phone_recognizer = PatternRecognizer(
         supported_entity="VN_PHONE",
         patterns=[Pattern(
             name="vn_phone",
-            regex=r"___",      # TODO: điền regex
+            regex=r"9\d{8,9}",
             score=0.85
-        )],
-        context=["điện thoại", "sdt", "phone", "liên hệ"]
+        )]
     )
 
-    # --- TASK 2.2.3 ---
-    # Tạo NLP engine dùng spaCy Vietnamese model
-    provider = NlpEngineProvider(nlp_configuration={
-        "nlp_engine_name": "spacy",
-        "models": [{"lang_code": "vi", 
-                    "model_name": "___"}]   # TODO: điền model name
-    })
-    nlp_engine = provider.create_engine()
+    # Vietnamese names: common surname patterns followed by name
+    # Common surnames: Nguyễn, Trần, Lê, Phạm, Hoàng/Huỳnh, Đặng, Bùi, etc.
+    vn_name_pattern = Pattern(
+        name="vn_name_pattern",
+        regex=r"(Nguyễn|Trần|Lê|Phạm|Hoàng|Huỳnh|Đặng|Bùi|Vũ|Mai|Trương|Trịnh|Ngô|Đỗ|Dương|Tạ|Phan|Lý|Hồ|Châu|Văn|Thanh|Tấn|Hải|Hiếu|Bảo|Minhoạt|Cô|Yến|Hạnh|Ông|Bác|Ngọc|Hương)",
+        score=0.7
+    )
+    vn_name_recognizer = PatternRecognizer(
+        supported_entity="VN_PERSON",
+        patterns=[vn_name_pattern]
+    )
 
-    # --- TASK 2.2.4 ---
-    # Khởi tạo AnalyzerEngine và add các recognizer
-    analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
-    analyzer.registry.add_recognizer(___)   # TODO
-    analyzer.registry.add_recognizer(___)   # TODO
+    # Use default analyzer with English support
+    analyzer = AnalyzerEngine()
+
+    analyzer.registry.add_recognizer(cccd_recognizer)
+    analyzer.registry.add_recognizer(phone_recognizer)
+    analyzer.registry.add_recognizer(vn_name_recognizer)
+    analyzer.registry.add_recognizer(GLiNERRecognizer())
 
     return analyzer
 
 
 def detect_pii(text: str, analyzer: AnalyzerEngine) -> list:
-    """
-    TODO: Detect PII trong text tiếng Việt.
-    Trả về list các RecognizerResult.
-    Entities cần detect: PERSON, EMAIL_ADDRESS, VN_CCCD, VN_PHONE
-    """
     results = analyzer.analyze(
-        text=___,       # TODO
-        language=___,   # TODO
-        entities=___    # TODO
+        text=text,
+        language="en",
+        entities=["PERSON", "EMAIL_ADDRESS", "VN_CCCD", "VN_PHONE", "VN_PERSON",
+                  "LOCATION", "ORGANIZATION"]
     )
     return results

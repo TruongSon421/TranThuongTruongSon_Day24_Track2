@@ -1,0 +1,46 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /home/son/Documents/AIThuchien/Track2/TranThuongTruongSon_Day24_Track2/medviet-governance/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/son/Documents/AIThuchien/Track2/TranThuongTruongSon_Day24_Track2/medviet-governance
+plugins: Faker-40.15.0, anyio-4.13.0
+collecting ... collected 6 items
+
+tests/test_pii.py::TestPIIDetection::test_cccd_detected PASSED           [ 16%]
+tests/test_pii.py::TestPIIDetection::test_phone_detected PASSED          [ 33%]
+tests/test_pii.py::TestPIIDetection::test_email_detected PASSED          [ 50%]
+tests/test_pii.py::TestPIIDetection::test_detection_rate_above_95_percent PASSED [ 66%]
+tests/test_pii.py::TestAnonymization::test_pii_not_in_output PASSED      [ 83%]
+tests/test_pii.py::TestAnonymization::test_non_pii_columns_unchanged PASSED [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:1061
+  /home/son/Documents/AIThuchien/Track2/TranThuongTruongSon_Day24_Track2/medviet-governance/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:1061: UserWarning: Can't initialize NVML
+    raw_cnt = _raw_device_count_nvml()
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+  /home/son/Documents/AIThuchien/Track2/TranThuongTruongSon_Day24_Track2/medviet-governance/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+tests/test_pii.py::TestPIIDetection::test_cccd_detected
+tests/test_pii.py::TestPIIDetection::test_phone_detected
+tests/test_pii.py::TestPIIDetection::test_email_detected
+tests/test_pii.py::TestPIIDetection::test_detection_rate_above_95_percent
+tests/test_pii.py::TestAnonymization::test_pii_not_in_output
+tests/test_pii.py::TestAnonymization::test_non_pii_columns_unchanged
+  /home/son/Documents/AIThuchien/Track2/TranThuongTruongSon_Day24_Track2/medviet-governance/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py:189: UserWarning: The `resume_download` argument is deprecated and ignored in `snapshot_download`. Downloads always resume whenever possible.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================== 6 passed, 16 warnings in 322.46s (0:05:22) ==================

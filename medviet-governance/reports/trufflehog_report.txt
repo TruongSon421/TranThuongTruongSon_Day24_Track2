@@ -1,0 +1,42 @@
+# TruffleHog Secret Scan Report
+
+## Scan Date: 2026-05-12
+
+## Tool Version
+TruffeHog 2.2.1 (using --entropy flag)
+
+## Findings
+
+### 1. Potentially Sensitive File in Git History
+```
+Reason: High Entropy
+Filepath: .vault_key_test
+Branch: origin/master
+Commit: Initial for scan
+```
+
+**Note:** `.vault_key_test` was found in git history. This is a test vault key file.
+In production, only `.vault_key` should be excluded. For this lab submission,
+ensure `.vault_key` and `.vault_key_test` are NOT included in the zip archive.
+
+**Action Taken:** The production `.vault_key` file is NOT present in the working directory.
+Only the test variant was committed during development and has been flagged.
+
+### 2. Venv Files (Expected - Excluded)
+```
+Filepath: .venv/lib/python3.12/site-packages/...
+```
+These are Python package files from the virtual environment. They are expected
+and do not represent actual secrets.
+
+## Recommendation
+- Ensure `.vault_key` is NOT added to git (add to .gitignore)
+- For submission, exclude all vault key files:
+  ```bash
+  zip -r lab24_submission.zip ... --exclude "*.vault_key*"
+  ```
+
+## Scan Status
+- Scan completed successfully
+- 1 potential issue flagged (low risk - test key file only)
+- No real credentials, AWS keys, or production secrets detected
